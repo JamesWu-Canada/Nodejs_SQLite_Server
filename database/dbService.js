@@ -1,8 +1,8 @@
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
 
-let database = null;
-conn_db = () => {
+var database = null;
+exports.conn = () => {
   let dbPath = path.join(__dirname, "data.db");
   console.log(`dbPath  = *** ${dbPath}`);
   //console.log(`__dirname == *** ${__dirname}`);
@@ -15,7 +15,7 @@ conn_db = () => {
   });
 };
 
-close_db = () => {
+exports.close_db = () => {
   if (database === null) return;
   database.close((err) => {
     if (err) {
@@ -25,28 +25,93 @@ close_db = () => {
   });
 };
 
-create_table = (table_name, ...Args) => {
+exports.create_table = (table_name, ...Args) => {
   if (!database) return;
   database.run("CREATE TABLE IF NOT EXISTS " + table_name + "(" + Args + ")");
 };
 
-insert_row = async (table_name = "", [values]) => {
+exports.insert_row = async (table_name, [...cols], [...vals]) => {
+  console.log("db: insert_row");
+  if (!database || !table_name) return "Invalid table/database";
+
   return new Promise((resolve, reject) => {
-    if (!database) reject(new Error("null database"));
-    let sql = `INSERT into ${table_name}`;
-    console.log(`sql = ${sql}`);
-    database.run(sql, [values], (err) => {
+    let placeholders = vals.map((v) => "?").join(",");
+    let sql =
+      "INSERT INTO " +
+      table_name +
+      "(" +
+      cols.toString() +
+      ") VALUES " +
+      "(" +
+      placeholders +
+      ")";
+    console.log(`sql = *** ${sql}`);
+    database.run(sql, vals, (err) => {
       if (err) {
-        console.log(err.message);
-        reject(err);
+        console.error(`err: ${err.message}`);
+        reject(err.message);
       }
-      resolve({ message: "data inserted" });
+      resolve({ message: "posting successful" });
     });
   });
 };
 
-query_rows = async (table_name = "") => {
+exports.update_row = async (
+  table_name,
+  [...cols],
+  [...vals],
+  key,
+  keyValue
+) => {
+  console.log("db: update_row");
+  if (!database || !table_name) return "Invalid table/database";
+
+  return new Promise((resolve, reject) => {
+    let placeholders = cols.map((c) => c + "=?").join(",");
+    let sql =
+      "UPDATE " + table_name + " SET " + placeholders + " WHERE " + key + "= ?";
+
+    console.log(vals);
+    vals.push(keyValue);
+    console.log(`sql = *** ${sql}`);
+    console.log(vals);
+    database.run(sql, vals, (err) => {
+      if (err) {
+        console.error(`err: ${err.message}`);
+        reject(err.message);
+      }
+      resolve({ message: "updated successfully" });
+    });
+  });
+};
+
+exports.delete_row = async (table_name, key, keyValue) => {
+  console.log("dbService: delete_row");
+  console.log(key);
+  console.log(keyValue);
+  console.log(table_name);
+  if (!database || !table_name) return "Invalid table/database";
+
+  return new Promise((resolve, reject) => {
+    let sql = "DELETE FROM " + table_name + " WHERE " + key + "= ?";
+    console.log(sql);
+    database.run(sql, keyValue, (err) => {
+      if (err) {
+        console.error(`err: ${err.message}`);
+        reject(err.message);
+      }
+      console.log("good result");
+      resolve({ message: "deleted successfully" });
+    });
+  });
+};
+
+exports.query = async (table_name = "") => {
   console.log("at query_rows");
+  if (table_name === "") {
+    return [];
+  }
+
   return new Promise((resolve, reject) => {
     if (!database) reject(new Error("null database"));
     let sql = `SELECT * from ${table_name}`;
@@ -54,15 +119,9 @@ query_rows = async (table_name = "") => {
     database.all(sql, [], (err, rows) => {
       if (err) {
         console.log(err.message);
-        reject(err);
+        reject(err.message);
       }
-      return resolve(rows);
+      resolve(rows);
     });
   });
 };
-
-module.exports.conn = conn_db;
-module.exports.close = close_db;
-module.exports.create = create_table;
-module.exports.insert = insert_row;
-module.exports.query = query_rows;
