@@ -85,6 +85,36 @@ exports.update_row = async (
   });
 };
 
+exports.update_row2 = (
+  table_name,
+  [...cols],
+  [...vals],
+  key,
+  keyValue,
+  getResult
+) => {
+  console.log("db: update_row2");
+  if (!database || !table_name) return "Invalid table/database";
+
+  let placeholders = cols.map((c) => c + "=?").join(",");
+  let sql =
+    "UPDATE " + table_name + " SET " + placeholders + " WHERE " + key + "= ?";
+
+  console.log(vals);
+  vals.push(keyValue);
+  console.log(`sql = *** ${sql}`);
+  console.log(vals);
+  database.run(sql, vals, (err) => {
+    if (err) {
+      console.error(`err: ${err.message}`);
+      getResult({ err: err.message });
+      return;
+    }
+    console.log();
+    getResult({ message: "updated successfully" });
+  });
+};
+
 exports.delete_row = async (table_name, key, keyValue) => {
   console.log("dbService: delete_row");
   if (!database || !table_name) return "Invalid table/database";

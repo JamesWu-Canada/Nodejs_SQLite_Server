@@ -89,6 +89,23 @@ exports.putDepartment = async (req, res) => {
   }
 };
 
+exports.putDepartment2 = (req, res) => {
+  console.log("controller: putDepartment2");
+  function getResult(result) {
+    console.log(result);
+    res.status(200).json(result);
+  }
+
+  let result = dbService.update_row2(
+    "department",
+    Object.keys(req.body),
+    Object.values(req.body),
+    "dnumber",
+    req.body.dnumber,
+    getResult
+  );
+};
+
 exports.deleteEmployee = async (req, res) => {
   try {
     let result = await dbService.delete_row("employee", "ssn", req.body.ssn);

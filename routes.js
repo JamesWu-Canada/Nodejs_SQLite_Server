@@ -10,6 +10,7 @@ const {
   getDepartments,
   postDepartment,
   putDepartment,
+  putDepartment2,
   deleteDepartment,
 } = require("./controller");
 
@@ -20,6 +21,7 @@ router.post("/employee", postEmployee);
 router.post("/department", postDepartment);
 router.put("/employee", putEmployee);
 router.put("/department", putDepartment);
+router.put("/department2", putDepartment2);
 router.delete("/employee", deleteEmployee);
 router.delete("/department", deleteDepartment);
 
