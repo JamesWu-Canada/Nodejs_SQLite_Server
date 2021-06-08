@@ -87,9 +87,6 @@ exports.update_row = async (
 
 exports.delete_row = async (table_name, key, keyValue) => {
   console.log("dbService: delete_row");
-  console.log(key);
-  console.log(keyValue);
-  console.log(table_name);
   if (!database || !table_name) return "Invalid table/database";
 
   return new Promise((resolve, reject) => {
